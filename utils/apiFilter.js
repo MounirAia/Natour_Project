@@ -80,4 +80,4 @@ class APIFilter {
   }
 }
 
-module.exports.APIFilter = APIFilter;
+module.exports = APIFilter;

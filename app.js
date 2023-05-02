@@ -9,4 +9,11 @@ app.use(morgan('dev'));
 
 app.use('/api/v1/tours', tourRoutes);
 
+app.all('*', (req, res) => {
+  res.status(404).json({
+    status: 'failed',
+    message: `Can't find $${req.originalUrl} on the server!`,
+  });
+});
+
 module.exports = app;

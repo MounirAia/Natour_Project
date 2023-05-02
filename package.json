@@ -7,7 +7,8 @@
     "start:dev": "cross-env NODE_ENV=development nodemon server.js",
     "import-dev-data:dev": "cross-env NODE_ENV=development node .\\dev-data\\data\\import-dev-data.js --import",
     "delete-dev-data:dev": "cross-env NODE_ENV=development node .\\dev-data\\data\\import-dev-data.js --delete",
-    "start:prod": "cross-env NODE_ENV=production nodemon server.js"
+    "start:prod": "cross-env NODE_ENV=production nodemon server.js",
+    "debug": "cross-env NODE_ENV=development ndb server.js"
   },
   "author": "",
   "license": "ISC",
@@ -28,6 +29,7 @@
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-prettier": "^4.2.1",
     "eslint-plugin-react": "^7.32.2",
+    "ndb": "^1.1.5",
     "nodemon": "^2.0.21",
     "prettier": "^2.8.7"
   },
