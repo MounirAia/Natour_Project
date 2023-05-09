@@ -1,17 +1,5 @@
 const AppError = require('../utils/appError');
 
-// The error controler
-errorController = (error, req, res, next) => {
-  if (process.env.NODE_ENV === 'development') {
-    sendErrorDev(res, error);
-  } else if (process.env.NODE_ENV === 'production') {
-    const errorHandler = new ErrorHandler({ errorObj: error });
-    sendErrorProd(res, errorHandler.GetErrorObject());
-  }
-};
-
-module.exports = errorController;
-
 // Just send the full error
 // Good for debuging
 const sendErrorDev = (res, error) => {
@@ -87,10 +75,10 @@ class ErrorHandler {
 
   handleValidationError() {
     const fullErrorObject = this.errorObj;
-    for (const fieldWithError in fullErrorObject.errors) {
+    Object.keys(fullErrorObject.errors).forEach((fieldWithError) => {
       this.errorObj = fullErrorObject.errors[fieldWithError];
       this.HandleError();
-    }
+    });
   }
 
   GetErrorObject() {
@@ -105,3 +93,15 @@ class ErrorHandler {
     return this.errorObj;
   }
 }
+
+// The error controler
+const errorController = (error, req, res, next) => {
+  if (process.env.NODE_ENV === 'development') {
+    sendErrorDev(res, error);
+  } else if (process.env.NODE_ENV === 'production') {
+    const errorHandler = new ErrorHandler({ errorObj: error });
+    sendErrorProd(res, errorHandler.GetErrorObject());
+  }
+};
+
+module.exports = errorController;

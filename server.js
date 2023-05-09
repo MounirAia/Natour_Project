@@ -16,6 +16,34 @@ mongoose
   });
 
 const port = process.env.PORT;
-app.listen(port, () => {
+const server = app.listen(port, () => {
   console.log(`Listening to port ${port}`);
+});
+
+// Handle unhandled sync error (error from code outside promises) that are not catch
+process.on('uncaughtException', (error) => {
+  console.log('Unchaught Exception! 🔥 Shutting Down...');
+  console.log(error);
+
+  if (server) {
+    server.close(() => {
+      process.exit(1);
+    });
+  } else {
+    process.exit(1);
+  }
+});
+
+// Handle unhandled async error (error from promises) that are not catch
+process.on('unhandledRejection', (error) => {
+  console.log('Unhandled Rejection! 🔥 Shutting Down...');
+  console.log(error);
+
+  if (server) {
+    server.close(() => {
+      process.exit(1);
+    });
+  } else {
+    process.exit(1);
+  }
 });

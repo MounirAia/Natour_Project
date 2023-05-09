@@ -9,7 +9,7 @@ const {
   getTour,
   updateTour,
   deleteTour,
-} = require('../controllers/tourControllers');
+} = require('../controllers/tourController');
 
 const router = express.Router();
 

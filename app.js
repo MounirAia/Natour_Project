@@ -1,6 +1,7 @@
 const morgan = require('morgan');
 const express = require('express');
 const tourRoutes = require('./routes/tourRoutes');
+const userRoutes = require('./routes/userRoutes');
 const AppError = require('./utils/appError');
 const globalErrorHandler = require('./controllers/errorController');
 
@@ -10,6 +11,7 @@ app.use(express.json()); // let you process json queries
 app.use(morgan('dev'));
 
 app.use('/api/v1/tours', tourRoutes);
+app.use('/api/v1/users', userRoutes);
 
 app.all('*', (req, res, next) => {
   next(

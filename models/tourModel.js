@@ -20,17 +20,15 @@ const tourSchema = new mongoose.Schema(
           validator: function (value) {
             if (value >= this.price) return false;
           },
-          message: (params) => {
-            return `The price discount: ${params.value} is greater than the actual price!`;
-          },
+          message: (params) =>
+            `The price discount: ${params.value} is greater than the actual price!`,
         },
         {
           validator: function (value) {
-            if (value == this.price - 1) return false;
+            if (value === this.price - 1) return false;
           },
-          message: (params) => {
-            return `The price discount: ${params.value} is equal than the actual price - 1!`;
-          },
+          message: (params) =>
+            `The price discount: ${params.value} is equal than the actual price - 1!`,
         },
       ],
     },
@@ -87,7 +85,6 @@ const tourSchema = new mongoose.Schema(
 );
 
 tourSchema.virtual('durationWeeks').get(function () {
-  console.log(this.duration);
   return Math.round((this.duration / 7) * 10) / 10;
 });
 
