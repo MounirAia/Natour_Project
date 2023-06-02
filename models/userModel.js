@@ -47,6 +47,7 @@ const userSchema = mongoose.Schema({
       },
     ],
   },
+  passwordUpdatedAt: { type: Date },
 });
 
 userSchema.pre('save', async function () {
@@ -60,6 +61,38 @@ userSchema.methods.verifyPassword = function (params) {
   const { userPassword, givenPassword } = params;
 
   return bcrypt.compare(givenPassword, userPassword);
+};
+
+userSchema.methods.didPasswordChangedAfterJWTTokenWasIssued = function (
+  params
+) {
+  let isPasswordIssuedAfterToken = false;
+  if (this.passwordUpdatedAt) {
+    const { tokenWasIssuedAt } = params;
+    const updatedAtMS = this.passwordUpdatedAt.getTime();
+
+    isPasswordIssuedAfterToken = tokenWasIssuedAt * 1000 - updatedAtMS < 0;
+  }
+
+  return isPasswordIssuedAfterToken;
+};
+
+userSchema.methods.updateUser = function (requestBody) {
+  // 1) Update the field that can be updated
+  const keysYouCanUpdate = ['name', 'photo', 'password', 'passwordConfirm'];
+  Object.keys(requestBody).forEach((key) => {
+    if (keysYouCanUpdate.includes(key)) {
+      const newValue = requestBody[key];
+      if (newValue) {
+        this[key] = newValue; // update the field with the new value
+        if (key === 'password') {
+          this.passwordUpdatedAt = new Date();
+        }
+      }
+    }
+  });
+
+  return this.save();
 };
 
 const User = mongoose.model('User', userSchema);

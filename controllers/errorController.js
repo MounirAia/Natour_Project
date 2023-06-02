@@ -29,6 +29,7 @@ const sendErrorProd = (res, error) => {
   } else {
     // For debuging in the host console
     console.error('ERROR:', error);
+    console.error(error.name, error.message);
     res.status(500).json({
       status: 'error',
       message: 'Something wrong happened.',
@@ -55,6 +56,10 @@ class ErrorHandler {
       this.messages.push(this.handleValidatorError());
     } else if (this.errorObj.name === 'ValidationError') {
       this.handleValidationError();
+    } else if (this.errorObj.name === 'JsonWebTokenError') {
+      this.messages.push(this.handleJWTError());
+    } else if (this.errorObj.name === 'TokenExpiredError') {
+      this.messages.push(this.handleJWTExpiredToken());
     }
   }
 
@@ -79,6 +84,22 @@ class ErrorHandler {
       this.errorObj = fullErrorObject.errors[fieldWithError];
       this.HandleError();
     });
+  }
+
+  handleJWTError() {
+    if (this.errorObj.message === 'invalid signature') {
+      return 'The JWT token signature is invalid.';
+    }
+    if (this.errorObj.message === 'jwt malformed') {
+      return 'The JWT token is malformed.';
+    }
+    if (this.errorObj.message === 'invalid token') {
+      return 'The JTW token is invalid';
+    }
+  }
+
+  handleJWTExpiredToken() {
+    return 'The JWT token is expired.';
   }
 
   GetErrorObject() {
