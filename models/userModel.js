@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const validator = require('validator');
 const bcrypt = require('bcryptjs');
+const crypto = require('crypto');
 
 const userSchema = mongoose.Schema({
   name: {
@@ -28,6 +29,11 @@ const userSchema = mongoose.Schema({
   photo: {
     type: String,
   },
+  role: {
+    type: String,
+    enum: ['user', 'admin', 'guide', 'lead-guide'],
+    default: 'user',
+  },
   password: {
     type: String,
     required: [true, 'A password is required.'],
@@ -48,12 +54,18 @@ const userSchema = mongoose.Schema({
     ],
   },
   passwordUpdatedAt: { type: Date },
+  resetPasswordToken: { type: String },
+  resetPasswordTokenExpiration: { type: Date },
 });
 
 userSchema.pre('save', async function () {
   if (this.isModified('password')) {
     this.password = await bcrypt.hash(this.password, 12);
     this.passwordConfirm = undefined;
+    if (!this.isNew) {
+      // it means you updated the password
+      this.passwordUpdatedAt = new Date();
+    }
   }
 });
 
@@ -70,7 +82,6 @@ userSchema.methods.didPasswordChangedAfterJWTTokenWasIssued = function (
   if (this.passwordUpdatedAt) {
     const { tokenWasIssuedAt } = params;
     const updatedAtMS = this.passwordUpdatedAt.getTime();
-
     isPasswordIssuedAfterToken = tokenWasIssuedAt * 1000 - updatedAtMS < 0;
   }
 
@@ -79,20 +90,41 @@ userSchema.methods.didPasswordChangedAfterJWTTokenWasIssued = function (
 
 userSchema.methods.updateUser = function (requestBody) {
   // 1) Update the field that can be updated
-  const keysYouCanUpdate = ['name', 'photo', 'password', 'passwordConfirm'];
+  const keysYouCanUpdate = ['name', 'photo'];
   Object.keys(requestBody).forEach((key) => {
     if (keysYouCanUpdate.includes(key)) {
       const newValue = requestBody[key];
       if (newValue) {
         this[key] = newValue; // update the field with the new value
-        if (key === 'password') {
-          this.passwordUpdatedAt = new Date();
-        }
       }
     }
   });
 
   return this.save();
+};
+
+userSchema.methods.updatePassword = function (params) {
+  const { password, passwordConfirm } = params;
+  this.password = password;
+  this.passwordConfirm = passwordConfirm;
+  this.resetPasswordToken = undefined;
+  this.resetPasswordTokenExpiration = undefined;
+
+  return this.save();
+};
+
+userSchema.methods.createResetToken = async function () {
+  const token = crypto.randomBytes(32).toString('hex');
+  const hashedToken = await bcrypt.hash(token, 12);
+
+  return { token, hashedToken };
+};
+
+userSchema.methods.verifyResetToken = async function (plainToken) {
+  if (!this.resetPasswordTokenExpiration) return false;
+  if (Date.now() > this.resetPasswordTokenExpiration.getTime()) return false;
+
+  return await bcrypt.compare(plainToken, this.resetPasswordToken);
 };
 
 const User = mongoose.model('User', userSchema);
