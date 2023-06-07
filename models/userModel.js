@@ -89,8 +89,8 @@ userSchema.methods.didPasswordChangedAfterJWTTokenWasIssued = function (
 };
 
 userSchema.methods.updateUser = function (requestBody) {
-  // 1) Update the field that can be updated
-  const keysYouCanUpdate = ['name', 'photo'];
+  // Update the field that can be updated
+  const keysYouCanUpdate = ['name', 'photo', 'email'];
   Object.keys(requestBody).forEach((key) => {
     if (keysYouCanUpdate.includes(key)) {
       const newValue = requestBody[key];
@@ -99,6 +99,10 @@ userSchema.methods.updateUser = function (requestBody) {
       }
     }
   });
+
+  // ignore validation on password, this method is only used to update non password field
+  this.$ignore('password');
+  this.$ignore('passwordConfirm');
 
   return this.save();
 };
@@ -120,11 +124,11 @@ userSchema.methods.createResetToken = async function () {
   return { token, hashedToken };
 };
 
-userSchema.methods.verifyResetToken = async function (plainToken) {
+userSchema.methods.verifyResetToken = function (plainToken) {
   if (!this.resetPasswordTokenExpiration) return false;
   if (Date.now() > this.resetPasswordTokenExpiration.getTime()) return false;
 
-  return await bcrypt.compare(plainToken, this.resetPasswordToken);
+  return bcrypt.compare(plainToken, this.resetPasswordToken);
 };
 
 const User = mongoose.model('User', userSchema);

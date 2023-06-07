@@ -1,7 +1,6 @@
 const { promisify } = require('util');
 const jwt = require('jsonwebtoken');
 const catchAsync = require('../utils/catchAsync');
-const sendMail = require('../utils/mail');
 const UserModel = require('../models/userModel');
 const AppError = require('../utils/appError');
 
@@ -139,7 +138,7 @@ exports.protectRoute = catchAsync(async (req, res, next) => {
 exports.restrictTo = function (params) {
   // middleware that restrict access to authentified user to specific ressourse
   // e.g. only admin can delete users
-  const { acceptedRoles } = params;
+  const { acceptedRoles } = params; // acceptedRole is an array of role
   return (req, res, next) => {
     if (!acceptedRoles.includes(req.user.role)) {
       return next(
@@ -152,86 +151,3 @@ exports.restrictTo = function (params) {
     next();
   };
 };
-
-exports.forgotPassword = catchAsync(async (req, res, next) => {
-  // 1) Get user based on the email of the user
-  const { email } = req.body;
-  const user = await UserModel.findOne({ email });
-  if (!user) {
-    return next(
-      new AppError({
-        message: 'No account is associated to this email.',
-        statusCode: 404,
-      })
-    );
-  }
-  // 2) Generate random token to send the email to user and store the encrypted token into user's data
-  const { token: plainToken, hashedToken } = await user.createResetToken();
-
-  user.resetPasswordToken = hashedToken;
-  user.resetPasswordTokenExpiration = Date.now() + 10 * 60 * 1000; // 10 min expiration date for the token
-
-  await user.save({ validateBeforeSave: false });
-
-  const redirectUrl = `${req.protocol}://${req.get('host')}${
-    req.baseUrl
-  }/resetPassword`;
-  const text = `<p>Click on this link to reset your password:<a href="${redirectUrl}?token=${plainToken}&email=${email}">Reset Password</a></p>`;
-
-  // 3) Send code to user's email
-  try {
-    await sendMail({ to: 'aa@te.com', subject: 'Token', html: text });
-
-    res.status(201).json({
-      status: 'success',
-      data: { message: 'The email was successfully sent!' },
-    });
-  } catch (err) {
-    user.resetPasswordToken = undefined;
-    user.resetPasswordTokenExpiration = undefined;
-    await user.save({ validateBeforeSave: false });
-
-    next(
-      new AppError({
-        message: 'A problem occured when sending the email.',
-        statusCode: 500,
-      })
-    );
-  }
-});
-
-exports.resetPassword = catchAsync(async (req, res, next) => {
-  // 1) retrieve data from query parameters
-  const { token, email } = req.query;
-
-  // 2) Verify if the token of the user is valid
-  const user = await UserModel.findOne({ email });
-  if (!user) {
-    return next(
-      new AppError({
-        message: 'No account is associated to this email.',
-        statusCode: 404,
-      })
-    );
-  }
-
-  const isTokenValid = await user.verifyResetToken(token);
-
-  if (!isTokenValid) {
-    return next(
-      new AppError({
-        message: 'The given token is invalid.',
-        statusCode: 403,
-      })
-    );
-  }
-
-  // 3) Update the user password with the data inside the body
-  const { password, passwordConfirm } = req.body;
-  await user.updatePassword({ password, passwordConfirm });
-
-  res.status(201).json({
-    status: 'success',
-    data: { message: 'The password was successfully updated!' },
-  });
-});
