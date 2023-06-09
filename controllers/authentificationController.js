@@ -77,8 +77,8 @@ exports.login = catchAsync(async (req, res, next) => {
     );
   }
 
+  // 2) verify if the email is associated to an account
   const user = await UserModel.findOne({ email }).select('+password');
-  // 2) verify if the if the email is associated to an account
   if (!user) {
     return next(
       new AppError({ message: 'Invalid credential.', statusCode: 400 })

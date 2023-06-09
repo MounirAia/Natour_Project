@@ -47,6 +47,7 @@ class APIFilter {
   sort() {
     // 2) Sort the query
     if (this.queryString.sort) {
+      // of the form sort:{attribute:[asc or desc], ...}
       this.queryObj.sort(this.queryString.sort);
     } else {
       this.queryObj.sort({ price: 'desc' });
@@ -58,6 +59,7 @@ class APIFilter {
   select() {
     // Selecting the fields you want
     if (this.queryString.select) {
+      // of the form select:"atrtibute1,attribute2..."
       const selectedFields = this.queryString.select.split(',').join(' ');
       this.queryObj.select(selectedFields);
     } else {

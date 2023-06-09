@@ -2,6 +2,8 @@ const morgan = require('morgan');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const express = require('express');
+const mongoSanitize = require('express-mongo-sanitize');
+
 const tourRoutes = require('./routes/tourRoutes');
 const userRoutes = require('./routes/userRoutes');
 const AppError = require('./utils/appError');
@@ -27,6 +29,9 @@ app.use('/api', limiter);
 
 // let you process json body in incoming queries
 app.use(express.json({ limit: '1kb' }));
+
+// Prevent No SQL Injection
+app.use(mongoSanitize());
 
 // Development package to log request made to the API in the console
 app.use(morgan('dev'));
