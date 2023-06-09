@@ -1,4 +1,5 @@
 const morgan = require('morgan');
+const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const express = require('express');
 const tourRoutes = require('./routes/tourRoutes');
@@ -7,13 +8,13 @@ const AppError = require('./utils/appError');
 const globalErrorHandler = require('./controllers/errorController');
 
 const app = express();
+// Set Secure HTTP headers
+app.use(helmet());
 
-app.use(express.json()); // let you process json queries
-app.use(morgan('dev'));
-
+// Limit the number of API request a single IP address can make in 1 hour
 const limiter = rateLimit({
   windowMs: 60 * 60 * 1000,
-  max: 1,
+  max: 100,
   message:
     'Too many request are sent from this IP, please try again after an hour',
   handler: (req, res, next, options) => {
@@ -21,8 +22,14 @@ const limiter = rateLimit({
     next(new AppError({ message, statusCode }));
   },
 });
-// used to limit the number of api request that are made on the server for a single IP address
+
 app.use('/api', limiter);
+
+// let you process json body in incoming queries
+app.use(express.json({ limit: '1kb' }));
+
+// Development package to log request made to the API in the console
+app.use(morgan('dev'));
 
 app.use('/api/v1/tours', tourRoutes);
 app.use('/api/v1/users', userRoutes);

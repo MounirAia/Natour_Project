@@ -60,6 +60,8 @@ class ErrorHandler {
       this.messages.push(this.handleJWTError());
     } else if (this.errorObj.name === 'TokenExpiredError') {
       this.messages.push(this.handleJWTExpiredToken());
+    } else if (this.errorObj.type === 'entity.too.large') {
+      this.messages.push(this.handleRequestBodyToLarge());
     }
   }
 
@@ -100,6 +102,10 @@ class ErrorHandler {
 
   handleJWTExpiredToken() {
     return 'The JWT token is expired.';
+  }
+
+  handleRequestBodyToLarge() {
+    return `The request body is too large. It should not exceed ${this.errorObj.limit} kb.`;
   }
 
   GetErrorObject() {
