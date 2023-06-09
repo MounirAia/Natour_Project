@@ -20,7 +20,9 @@ exports.updateUser = catchAsync(async (req, res, next) => {
   const { id } = req.params;
   const user = await UserModel.findById(id);
   if (!user) {
-    next(new AppError({ message: 'User no longer exist.', statusCode: 401 }));
+    return next(
+      new AppError({ message: 'User no longer exist.', statusCode: 401 })
+    );
   }
 
   await user.updateUser(req.body);
@@ -33,7 +35,7 @@ exports.updateUser = catchAsync(async (req, res, next) => {
   });
 });
 
-exports.updateMyInfo = catchAsync(async (req, res, next) => {
+exports.updateMe = catchAsync(async (req, res, next) => {
   // Route that handles the update of a logged user in his account
 
   // 1) get User and update it's info
@@ -100,7 +102,7 @@ exports.resetPassword = catchAsync(async (req, res, next) => {
   // 1) retrieve data from query parameters
   const { token, email } = req.query;
 
-  // 2) Verify if the token of the user is valid
+  // 2) Verify if the reset password token of the user is valid
   const user = await UserModel.findOne({ email });
   if (!user) {
     return next(
@@ -154,6 +156,43 @@ exports.updatePassword = catchAsync(async (req, res, next) => {
 
   res.status(201).json({
     status: 'success',
-    data: { message: 'The password was successfully updated!' },
+    data: { message: 'The password was successfully updated.' },
+  });
+});
+
+exports.deleteMe = catchAsync(async (req, res, next) => {
+  // Route used to allow user to delete his account
+  const { user } = req;
+
+  await UserModel.deleteOne({ _id: user._id });
+
+  res.status(200).json({
+    status: 'success',
+    data: {
+      message: 'The user has been successfully deleted.',
+    },
+  });
+});
+
+exports.deleteUser = catchAsync(async (req, res, next) => {
+  // Route used to allow admin to delete any users
+  // 1) find the user to delete by id
+  const { id } = req.params;
+
+  const user = await UserModel.findById(id);
+  if (!user) {
+    return next(
+      new AppError({ message: 'User no longer exist.', statusCode: 401 })
+    );
+  }
+
+  // 2) delete the user to delete
+  await UserModel.deleteOne({ _id: user._id });
+
+  res.status(200).json({
+    status: 'success',
+    data: {
+      message: 'The user has been successfully deleted.',
+    },
   });
 });

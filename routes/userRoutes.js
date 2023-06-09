@@ -11,7 +11,9 @@ const {
   forgotPassword,
   resetPassword,
   updatePassword,
-  updateMyInfo,
+  updateMe,
+  deleteMe,
+  deleteUser,
 } = require('../controllers/userController');
 
 const router = express.Router();
@@ -24,12 +26,12 @@ router.patch('/resetPassword', resetPassword);
 router.patch('/updatePassword', protectRoute, updatePassword);
 
 router.get('/', protectRoute, getUsers);
-router.patch('/updateMyInfo', protectRoute, updateMyInfo);
-router.patch(
-  '/:id',
-  protectRoute,
-  restrictTo({ acceptedRoles: ['admin'] }),
-  updateUser
-);
+router.patch('/updateMe', protectRoute, updateMe);
+router.delete('/deleteMe', protectRoute, deleteMe);
+
+router
+  .route('/:id')
+  .patch(protectRoute, restrictTo({ acceptedRoles: ['admin'] }), updateUser)
+  .delete(protectRoute, restrictTo({ acceptedRoles: ['admin'] }), deleteUser);
 
 module.exports = router;

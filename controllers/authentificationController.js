@@ -9,6 +9,34 @@ const signToken = (params) =>
     expiresIn: process.env.JWT_EXPIRES_IN,
   });
 
+const sendJWTToken = (params) => {
+  const { res, token, payload, statusCode } = params;
+  let cookieOption = {};
+
+  if (process.env.NODE_ENV === 'development') {
+    cookieOption = {
+      httpOnly: true, // make the cookie unalterable with the document object of the browser
+      expires: new Date(
+        Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000
+      ),
+    };
+  } else if (process.env.NODE_ENV === 'production') {
+    cookieOption = {
+      httpOnly: true, // make the cookie unalterable with the document object of the browser
+      secure: true, // make the cookie only usable in https domain
+      expires: new Date(
+        Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000
+      ),
+    };
+  }
+
+  res.cookie('jwt', token, cookieOption);
+
+  res.status(statusCode).json({
+    ...payload,
+  });
+};
+
 exports.signup = catchAsync(async (req, res, next) => {
   const { name, email, password, passwordConfirm, role } = req.body;
   const newUser = await UserModel.create({
@@ -19,14 +47,21 @@ exports.signup = catchAsync(async (req, res, next) => {
     role,
   });
 
+  newUser.password = undefined; // to not send the password in the response
+
   const token = signToken({ id: newUser._id });
 
-  res.status(201).json({
-    status: 'success',
-    token,
-    data: {
-      user: newUser,
+  sendJWTToken({
+    res,
+    payload: {
+      status: 'success',
+      token,
+      data: {
+        user: newUser,
+      },
     },
+    statusCode: 201,
+    token,
   });
 });
 
@@ -64,8 +99,13 @@ exports.login = catchAsync(async (req, res, next) => {
 
   const token = signToken({ id: user._id });
 
-  res.status(201).json({
-    status: 'success',
+  sendJWTToken({
+    res,
+    payload: {
+      status: 'success',
+      token,
+    },
+    statusCode: 201,
     token,
   });
 });
@@ -103,7 +143,9 @@ exports.protectRoute = catchAsync(async (req, res, next) => {
   ); // returns an object that is associated to the token
 
   if (!decodedToken) {
-    next(new AppError({ message: 'Your token is invalid.', statusCode: 401 }));
+    return next(
+      new AppError({ message: 'Your token is invalid.', statusCode: 401 })
+    );
   }
 
   // 3) verify if the user still exist
@@ -111,7 +153,7 @@ exports.protectRoute = catchAsync(async (req, res, next) => {
 
   const user = await UserModel.findById(id);
   if (!user) {
-    next(
+    return next(
       new AppError({ message: 'The user no longer exist.', statusCode: 404 })
     );
   }
@@ -122,7 +164,7 @@ exports.protectRoute = catchAsync(async (req, res, next) => {
     user.didPasswordChangedAfterJWTTokenWasIssued({ tokenWasIssuedAt: iat });
 
   if (passwordChangedAfterToken) {
-    next(
+    return next(
       new AppError({
         message: 'The token is no longer valid due to a password change.',
         statusCode: 401,
