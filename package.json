@@ -6,7 +6,7 @@
   "scripts": {
     "start:dev:server": "cross-env NODE_ENV=development nodemon server.js",
     "start:dev": "concurrently \"npm run start:dev:server\" \"maildev\"",
-    "import-dev-data:dev": "cross-env NODE_ENV=development node .\\dev`-data\\data\\import-dev-data.js --import",
+    "import-dev-data:dev": "cross-env NODE_ENV=development node .\\dev-data\\data\\import-dev-data.js --import",
     "delete-dev-data:dev": "cross-env NODE_ENV=development node .\\dev-data\\data\\import-dev-data.js --delete",
     "start:prod": "cross-env NODE_ENV=production nodemon server.js",
     "debug": "cross-env NODE_ENV=development ndb server.js"

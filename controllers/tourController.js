@@ -112,7 +112,7 @@ exports.createTour = catchAsync(async (req, res, next) => {
 
 exports.getTour = catchAsync(async (req, res, next) => {
   const { id } = req.params;
-  const tour = await TourModel.findById(id);
+  const tour = await TourModel.findById(id).populate('reviews');
 
   if (!tour) {
     return next(

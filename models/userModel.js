@@ -7,13 +7,14 @@ const userSchema = mongoose.Schema({
   name: {
     type: String,
     required: [true, 'A name is required.'],
-    validate: [
-      {
-        validator: validator.isAlpha,
-        message: (params) =>
-          `The name: ${params.value} must only contain letters.`,
-      },
-    ],
+    trim: true,
+    // validate: [
+    //   {
+    //     validator: validator.isAlpha,
+    //     message: (params) =>
+    //       `The name: ${params.value} must only contain letters.`,
+    //   },
+    // ],
   },
   email: {
     type: String,
@@ -67,6 +68,10 @@ userSchema.pre('save', async function () {
       this.passwordUpdatedAt = new Date();
     }
   }
+});
+
+userSchema.pre(/^find/, async function () {
+  this.select('-__v');
 });
 
 userSchema.methods.verifyPassword = function (params) {
