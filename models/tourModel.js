@@ -166,28 +166,6 @@ tourSchema.virtual('reviews', {
   localField: '_id',
 });
 
-tourSchema.methods.incrementRatingQuantity = async function (parameters) {
-  const { rating } = parameters;
-  this.ratingsAverage =
-    (this.ratingsAverage * this.ratingsQuantity + rating) /
-    (this.ratingsQuantity + 1);
-
-  this.ratingsQuantity += 1;
-  await this.save();
-};
-
-tourSchema.methods.decrementRatingQuantity = async function (parameters) {
-  const { rating } = parameters;
-  const newAverage =
-    (this.ratingsQuantity * this.ratingsAverage - rating) /
-    (this.ratingsQuantity - 1);
-
-  this.ratingsQuantity -= 1;
-  this.ratingsAverage = newAverage;
-
-  await this.save();
-};
-
 // query middleware, this=query object
 tourSchema.pre(/^find/, async function () {
   this.populate({

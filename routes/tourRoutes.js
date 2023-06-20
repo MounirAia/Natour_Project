@@ -14,17 +14,37 @@ const {
   protectRoute,
   restrictTo,
 } = require('../controllers/authentificationController');
+const reviewRouter = require('./reviewRoutes');
 
 const router = express.Router();
 
-router.route('/').get(getTours).post(createTour);
+// nested router for the reviews
+router.use('/:tourID/reviews', reviewRouter);
+
+router
+  .route('/')
+  .get(getTours)
+  .post(
+    protectRoute,
+    restrictTo({
+      acceptedRoles: ['admin', 'lead-guide'],
+    }),
+    createTour
+  );
+
 router.route('/cheapest').get(topFiveCheapTour, getTours); // Alias routes
 router.route('/stats').get(getTourStats);
 router.route('/monthly-stats/:year').get(getMonthlyStats);
 router
   .route('/:id')
   .get(getTour)
-  .patch(updateTour)
+  .patch(
+    protectRoute,
+    restrictTo({
+      acceptedRoles: ['admin', 'lead-guide'],
+    }),
+    updateTour
+  )
   .delete(
     protectRoute,
     restrictTo({

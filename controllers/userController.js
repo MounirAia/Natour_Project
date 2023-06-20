@@ -15,6 +15,16 @@ exports.getUsers = catchAsync(async (req, res, next) => {
   });
 });
 
+exports.getMe = catchAsync(async (req, res, next) => {
+  const { user } = req;
+  res.status(200).json({
+    status: 'success',
+    data: {
+      user,
+    },
+  });
+});
+
 exports.updateUser = catchAsync(async (req, res, next) => {
   // Route available for an admin to update a user info externaly
   const { id } = req.params;

@@ -30,7 +30,7 @@ const limiter = rateLimit({
 app.use('/api', limiter);
 
 // let you process json body in incoming queries
-app.use(express.json({ limit: '1kb' }));
+app.use(express.json({ limit: '10kb' }));
 
 // Prevent No SQL Injection
 app.use(mongoSanitize());

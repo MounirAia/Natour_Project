@@ -14,6 +14,7 @@ const {
   updateMe,
   deleteMe,
   deleteUser,
+  getMe,
 } = require('../controllers/userController');
 
 const router = express.Router();
@@ -23,15 +24,18 @@ router.post('/login', login);
 
 router.post('/forgotPassword', forgotPassword);
 router.patch('/resetPassword', resetPassword);
-router.patch('/updatePassword', protectRoute, updatePassword);
 
-router.get('/', protectRoute, getUsers);
-router.patch('/updateMe', protectRoute, updateMe);
-router.delete('/deleteMe', protectRoute, deleteMe);
+router.use(protectRoute); // all the routes below are protected routes
 
-router
-  .route('/:id')
-  .patch(protectRoute, restrictTo({ acceptedRoles: ['admin'] }), updateUser)
-  .delete(protectRoute, restrictTo({ acceptedRoles: ['admin'] }), deleteUser);
+router.patch('/updatePassword', updatePassword);
+
+router.get('/me', getMe);
+router.patch('/updateMe', updateMe);
+router.delete('/deleteMe', deleteMe);
+
+router.use(restrictTo({ acceptedRoles: ['admin'] })); // all the routes below are reserved for admins
+
+router.get('/', getUsers);
+router.route('/:id').patch(updateUser).delete(deleteUser);
 
 module.exports = router;
