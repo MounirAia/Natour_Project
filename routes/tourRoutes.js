@@ -9,6 +9,8 @@ const {
   getTour,
   updateTour,
   deleteTour,
+  tourWithin,
+  getDistance,
 } = require('../controllers/tourController');
 const {
   protectRoute,
@@ -52,5 +54,8 @@ router
     }),
     deleteTour
   );
+
+router.route('/tourWithin/:maxDistance/:latlng').get(tourWithin);
+router.route('/tourWithin/:latlng').get(getDistance);
 
 module.exports = router;

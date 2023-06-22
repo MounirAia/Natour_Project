@@ -153,3 +153,98 @@ exports.deleteTour = catchAsync(async (req, res, next) => {
     data: null,
   });
 });
+
+// Test if results are true
+// Work on error message
+// /tourWithin/:maxDistance/:latlng
+exports.tourWithin = catchAsync(async (req, res, next) => {
+  // in km
+  const { maxDistance, latlng } = req.params;
+  const [latitude, longitude] = latlng.split(',');
+  if (!maxDistance || !Number.isFinite(parseFloat(maxDistance))) {
+    return next(
+      new AppError({
+        message: 'A valid max distance is needed.',
+        statusCode: 400,
+      })
+    );
+  }
+
+  if (
+    !latitude ||
+    !longitude ||
+    !Number.isFinite(parseFloat(latitude)) ||
+    !Number.isFinite(parseFloat(longitude))
+  ) {
+    return next(
+      new AppError({
+        message: 'A valid latitude and a valid longitude is needed.',
+        statusCode: 400,
+      })
+    );
+  }
+  const tours = await TourModel.find({
+    startLocation: {
+      $near: {
+        $geometry: {
+          type: 'Point',
+          coordinates: [parseFloat(longitude), parseFloat(latitude)],
+        },
+        $maxDistance: parseFloat(maxDistance * 1000),
+      },
+    },
+  });
+
+  res.status(200).json({
+    status: 'success',
+    result: tours.length,
+    data: {
+      tours,
+    },
+  });
+});
+
+exports.getDistance = catchAsync(async (req, res, next) => {
+  const { latlng } = req.params;
+  const [latitude, longitude] = latlng.split(',');
+
+  if (
+    !latitude ||
+    !longitude ||
+    !Number.isFinite(parseFloat(latitude)) ||
+    !Number.isFinite(parseFloat(longitude))
+  ) {
+    return next(
+      new AppError({
+        message: 'A valid latitude and a valid longitude is needed.',
+        statusCode: 400,
+      })
+    );
+  }
+
+  const distances = await TourModel.aggregate([
+    {
+      $geoNear: {
+        near: {
+          type: 'point',
+          coordinates: [parseFloat(longitude), parseFloat(latitude)],
+        },
+        distanceField: 'distance',
+      },
+    },
+    {
+      $project: {
+        name: 1,
+        distance: { $round: [{ $divide: ['$distance', 1000] }, 2] },
+      },
+    },
+  ]);
+
+  res.status(200).json({
+    status: 'success',
+    result: distances.length,
+    data: {
+      distances,
+    },
+  });
+});

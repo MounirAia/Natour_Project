@@ -66,9 +66,9 @@ class ErrorHandler {
   }
 
   handleDuplicateKeyError() {
-    const attribute = Object.keys(this.errorObj.keyValue)[0];
-    const invalidValue = this.errorObj.keyValue[attribute];
-    return `The ${attribute}: ${invalidValue} already exist in the database.`;
+    const attributes = Object.keys(this.errorObj.keyValue);
+
+    return `The [${attributes.join(',')}]: must be unique.`;
   }
 
   handleCastError() {

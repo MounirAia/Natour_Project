@@ -36,6 +36,11 @@ const reviewSchema = new mongoose.Schema(
   // Create a field createdAt and updatedAt
   { timestamps: true }
 );
+
+// make the combination of tour+author unique
+// it means an authour can only review 1 specific tour only once
+reviewSchema.index({ tour: 1, author: 1 }, { unique: true });
+
 reviewSchema.statics.updateTourRatingsStatistics = async function (parameters) {
   const { tourID } = parameters;
   const tourStats = await this.aggregate([
