@@ -8,13 +8,15 @@ const userSchema = mongoose.Schema({
     type: String,
     required: [true, 'A name is required.'],
     trim: true,
-    // validate: [
-    //   {
-    //     validator: validator.isAlpha,
-    //     message: (params) =>
-    //       `The name: ${params.value} must only contain letters.`,
-    //   },
-    // ],
+    validate: [
+      {
+        validator: function (value) {
+          return validator.isAlpha(value, 'en-US', { ignore: ' ' });
+        },
+        message: (params) =>
+          `The name: ${params.value} must only contain letters.`,
+      },
+    ],
   },
   email: {
     type: String,

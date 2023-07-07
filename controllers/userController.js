@@ -57,6 +57,7 @@ exports.updateMe = catchAsync(async (req, res, next) => {
     status: 'success',
     data: {
       user,
+      message: 'Successfully updated your info!',
     },
   });
 });

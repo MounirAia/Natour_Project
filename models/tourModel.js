@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const slugify = require('slugify');
 
 const tourSchema = new mongoose.Schema(
   {
@@ -9,6 +10,7 @@ const tourSchema = new mongoose.Schema(
       minlength: [10, 'A tour name should have 10 or more characters'],
       maxlength: [40, 'A tour name should not exceed 40 or more characters'],
     },
+    slug: { type: String },
     price: {
       type: Number,
       required: [true, 'A tour must have a price'],
@@ -166,6 +168,10 @@ tourSchema.virtual('reviews', {
   ref: 'Review',
   foreignField: 'tour',
   localField: '_id',
+});
+
+tourSchema.pre('save', async function () {
+  this.slug = slugify(this.name, { lower: true });
 });
 
 // query middleware, this=query object

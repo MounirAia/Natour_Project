@@ -2,7 +2,8 @@ const AppError = require('../utils/appError');
 
 // Just send the full error
 // Good for debuging
-const sendErrorDev = (res, error) => {
+const sendErrorDev = (req, res, error) => {
+  const isApiError = req.originalUrl.startsWith('/api');
   const {
     message = 'Something wrong happened.',
     status = 'error',
@@ -10,30 +11,55 @@ const sendErrorDev = (res, error) => {
     stack,
   } = error;
 
-  res.status(statusCode).json({
-    status,
-    error,
-    message,
-    stack,
-  });
+  if (isApiError) {
+    // Send JSON response if error made on api call
+    res.status(statusCode).json({
+      status,
+      error,
+      message,
+      stack,
+    });
+  } else {
+    // Send Page Render response if error made on website
+    res
+      .status(statusCode)
+      .render('error', { title: 'Something wrong happened', message });
+  }
 };
 
 // Send a well formated error for users
-const sendErrorProd = (res, error) => {
+const sendErrorProd = (req, res, error) => {
   const { message, status, statusCode, isOperational } = error;
+  const isApiError = req.originalUrl.startsWith('/api');
+
   if (isOperational) {
-    res.status(statusCode).json({
-      status,
-      message,
-    });
+    if (isApiError) {
+      res.status(statusCode).json({
+        status,
+        message,
+      });
+    } else {
+      // render error if not api error
+      res
+        .status(statusCode)
+        .render('error', { title: 'Something wrong happened', message });
+    }
   } else {
     // For debuging in the host console
     console.error('ERROR:', error);
     console.error(error.name, error.message);
-    res.status(500).json({
-      status: 'error',
-      message: 'Something wrong happened.',
-    });
+    if (isApiError) {
+      res.status(500).json({
+        status: 'error',
+        message: 'Something wrong happened.',
+      });
+    } else {
+      // render error if not api error
+      res.status(500).render('error', {
+        title: 'Something wrong happened',
+        message: 'Something wrong happened.',
+      });
+    }
   }
 };
 
@@ -124,10 +150,10 @@ class ErrorHandler {
 // The error controler
 const errorController = (error, req, res, next) => {
   if (process.env.NODE_ENV === 'development') {
-    sendErrorDev(res, error);
+    sendErrorDev(req, res, error);
   } else if (process.env.NODE_ENV === 'production') {
     const errorHandler = new ErrorHandler({ errorObj: error });
-    sendErrorProd(res, errorHandler.GetErrorObject());
+    sendErrorProd(req, res, errorHandler.GetErrorObject());
   }
 };
 

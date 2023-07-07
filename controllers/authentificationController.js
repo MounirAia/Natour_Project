@@ -110,21 +110,33 @@ exports.login = catchAsync(async (req, res, next) => {
   });
 });
 
-exports.protectRoute = catchAsync(async (req, res, next) => {
-  // 1) verify if a token exist and follow valid format
-  let token = req.headers.authorization;
-
-  if (!token || !token.startsWith('Bearer')) {
-    return next(
-      new AppError({
-        message:
-          'You are not logged in! You need to login to access this resource.',
-        statusCode: 401,
-      })
-    );
+exports.logout = (req, res) => {
+  if (req.cookies.jwt) {
+    res.cookie('jwt', '', {
+      maxAge: 0,
+    });
   }
 
-  token = token.split(' ')[1];
+  res.status(200).json({
+    payload: {
+      status: 'success',
+    },
+  });
+};
+
+exports.protectRoute = catchAsync(async (req, res, next) => {
+  // 1) verify if a token exist and follow valid format
+  let token;
+
+  if (
+    req.headers.authorization &&
+    req.headers.authorization.startsWith('Bearer')
+  ) {
+    token = req.headers.authorization.split(' ')[1];
+  } else if (req.cookies.jwt) {
+    token = req.cookies.jwt;
+  }
+
   if (!token) {
     return next(
       new AppError({
@@ -173,10 +185,47 @@ exports.protectRoute = catchAsync(async (req, res, next) => {
   }
 
   req.user = user;
+  res.locals.user = user; // for pug template
 
   next();
 });
+exports.verifyIfLoggedIn = catchAsync(async (req, res, next) => {
+  if (req.cookies.jwt) {
+    const token = req.cookies.jwt;
 
+    // 2) verify if the token is valid
+
+    const decodedToken = await promisify(jwt.verify)(
+      token,
+      process.env.JWT_SECRET
+    ); // returns an object that is associated to the token
+
+    if (!decodedToken) {
+      return next();
+    }
+
+    // 3) verify if the user still exist
+    const { id, iat } = decodedToken;
+
+    const user = await UserModel.findById(id);
+    if (!user) {
+      return next();
+    }
+
+    // 4) verify if the user did not change his password after the token was issued
+
+    const passwordChangedAfterToken =
+      user.didPasswordChangedAfterJWTTokenWasIssued({ tokenWasIssuedAt: iat });
+
+    if (passwordChangedAfterToken) {
+      return next();
+    }
+
+    // assign the user variable for the templates
+    res.locals.user = user;
+  }
+  next();
+});
 exports.restrictTo = function (params) {
   // middleware that restrict access to authentified user to specific ressourse
   // e.g. only admin can delete users

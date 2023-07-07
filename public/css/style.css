@@ -149,7 +149,7 @@ body {
 .heading-primary span,
 .heading-tertirary span {
   padding: 1rem 1.5rem;
-  line-height: 1;
+  /* line-height: 1.5; */
   -webkit-box-decoration-break: clone;
   box-decoration-break: clone;
   background-image: -webkit-gradient(
@@ -549,6 +549,7 @@ body {
   top: 0;
   bottom: 0;
   width: 100%;
+  height: auto;
 }
 
 .marker {
@@ -830,6 +831,7 @@ body {
   display: -webkit-box;
   display: -ms-flexbox;
   display: flex;
+  justify-content: flex-end;
 }
 .footer__nav li {
   margin-left: 1.5rem;
