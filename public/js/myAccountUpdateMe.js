@@ -8,12 +8,10 @@ const userPasswordForm = document.querySelector('form.form-user-settings');
 if (userGeneralInfoForm) {
   userGeneralInfoForm.addEventListener('submit', (event) => {
     event.preventDefault();
-    const { email, name } = event.target;
+    const formData = new FormData(event.target);
+
     axios
-      .patch('/api/v1/users/updateMe', {
-        email: email.value,
-        name: name.value,
-      })
+      .patch('/api/v1/users/updateMe', formData)
       .then(function (response) {
         const { data } = response;
         const { message } = data.data;

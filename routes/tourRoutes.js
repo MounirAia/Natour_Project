@@ -11,6 +11,8 @@ const {
   deleteTour,
   tourWithin,
   getDistance,
+  loadTourPhotos,
+  resizeTourPhotos,
 } = require('../controllers/tourController');
 const {
   protectRoute,
@@ -45,6 +47,8 @@ router
     restrictTo({
       acceptedRoles: ['admin', 'lead-guide'],
     }),
+    loadTourPhotos,
+    resizeTourPhotos,
     updateTour
   )
   .delete(

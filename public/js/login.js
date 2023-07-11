@@ -8,7 +8,6 @@ if (form) {
   form.addEventListener('submit', (event) => {
     event.preventDefault();
     const { email, password } = event.target;
-
     axios
       .post('/api/v1/users/login', {
         email: email.value,

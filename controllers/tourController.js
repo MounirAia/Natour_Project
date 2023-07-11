@@ -1,7 +1,65 @@
+const multer = require('multer');
+const sharp = require('sharp');
 const TourModel = require('../models/tourModel');
 const APIFilter = require('../utils/apiFilter');
 const AppError = require('../utils/appError');
 const catchAsync = require('../utils/catchAsync');
+
+const storage = multer.memoryStorage();
+
+const fileFilter = function (req, file, cb) {
+  if (!file.mimetype.startsWith('image')) {
+    cb(
+      new AppError({
+        message: 'Please upload an Image.',
+        statusCode: 400,
+      })
+    );
+  }
+  cb(null, true);
+};
+
+const upload = multer({
+  storage,
+  fileFilter,
+});
+
+exports.loadTourPhotos = upload.fields([
+  { name: 'imageCover', maxCount: 1 },
+  { name: 'images', maxCount: 3 },
+]);
+
+exports.resizeTourPhotos = catchAsync(async (req, res, next) => {
+  console.log(req.files);
+  if (req.files) {
+    // 1) Treating Image Cover
+    if (req.files.imageCover) {
+      req.body.imageCover = `tour-${req.params.id}-${Date.now()}-cover.jpg`;
+      await sharp(req.files.imageCover[0].buffer)
+        .resize(2000, 1333)
+        .jpeg({ quality: 90 })
+        .toFile(`./public/img/tours/${req.body.imageCover}`);
+    }
+
+    if (req.files.images) {
+      req.body.images = [];
+      const arrayOfPromise = req.files.images.map(async (file, index) => {
+        const imageName = `tour-${req.params.id}-${Date.now()}-${
+          index + 1
+        }.jpg`;
+        await sharp(file.buffer)
+          .resize(2000, 1333)
+          .jpeg({ quality: 90 })
+          .toFile(`./public/img/tours/${imageName}`);
+        req.body.images.push(imageName);
+      });
+
+      await Promise.all(arrayOfPromise);
+    }
+  }
+
+  next();
+});
 
 exports.getMonthlyStats = catchAsync(async (req, res, next) => {
   const year = req.params.year * 1;

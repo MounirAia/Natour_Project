@@ -12,13 +12,15 @@ mixin displaySettingsMenu()
         form.form.form-user-data
             .form__group
                 label.form__label(for='name') Name
-                input#name.form__input(type='text', value=`${user.name}`, required)
+                input#name.form__input(type='text' name='name' value=`${user.name}` required)
             .form__group.ma-bt-md
                 label.form__label(for='email') Email address
-                input#email.form__input(type='email', value=`${user.email}`, required)
+                input#email.form__input(type='email' name='email' value=`${user.email}` required)
             .form__group.form__photo-upload
-                img.form__user-photo(src=`/img/users/${user.photo}`, alt=`${user.name}`)
-                a.btn-text(href='') Choose new photo
+                label
+                    img.form__user-photo(src=`/img/users/${user.photo}`, alt=`${user.name}`)
+                input.form__upload(type="file" accept='image/*' id='photo' name='photo')
+                label.form__label(for='photo') Choose new photo
             .form__group.right
                 button.btn.btn--small.btn--green Save settings
     .line &nbsp;
@@ -46,14 +48,14 @@ block content
                     +menuLink('#','My bookings','briefcase')
                     +menuLink('#','My reviews','star')
                     +menuLink('#','Billing','credit-card')
-                //- if user.role === 'admin'
-                .admin-nav
-                    h5.admin-nav__heading Admin
-                    ul.side-nav
-                        +menuLink('#','Manage tours','map')
-                        +menuLink('#','Manage users','users')
-                        +menuLink('#','Manage reviews','star')
-                        +menuLink('#','Manage bookings','briefcase')
+                if user.role === 'admin'
+                    .admin-nav
+                        h5.admin-nav__heading Admin
+                        ul.side-nav
+                            +menuLink('#','Manage tours','map')
+                            +menuLink('#','Manage users','users')
+                            +menuLink('#','Manage reviews','star')
+                            +menuLink('#','Manage bookings','briefcase')
 
             .user-view__content
                 if active == 1

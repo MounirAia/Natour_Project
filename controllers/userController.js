@@ -1,7 +1,55 @@
+const multer = require('multer');
+const sharp = require('sharp');
 const catchAsync = require('../utils/catchAsync');
 const UserModel = require('../models/userModel');
 const AppError = require('../utils/appError');
 const sendMail = require('../utils/mail');
+
+// const storage = multer.diskStorage({
+//   destination: function (req, file, cb) {
+//     cb(null, 'public/img/users');
+//   },
+//   filename: function (req, file, cb) {
+//     const name = file.originalname.split('.')[0];
+//     const extension = file.originalname.split('.')[1];
+//     const filename = `${name}-${req.user._id}-${Date.now()}.${extension}`;
+//     cb(null, filename);
+//   },
+// });
+const storage = multer.memoryStorage();
+
+const fileFilter = function (req, file, cb) {
+  if (!file.mimetype.startsWith('image')) {
+    cb(
+      new AppError({
+        message: 'Please upload an Image.',
+        statusCode: 400,
+      })
+    );
+  }
+  cb(null, true);
+};
+
+const upload = multer({
+  storage,
+  fileFilter,
+});
+
+exports.loadAPhoto = upload.single('photo');
+
+exports.resizeAPhoto = catchAsync(async (req, res, next) => {
+  if (req.file) {
+    const name = req.file.originalname.split('.')[0];
+    const filename = `${name}-${req.user._id}-${Date.now()}.jpg`;
+    req.file.filename = filename;
+    const { buffer } = req.file;
+    await sharp(buffer)
+      .resize(500, 500)
+      .jpeg({ quality: 90 })
+      .toFile(`./public/img/users/${filename}`);
+  }
+  next();
+});
 
 exports.getUsers = catchAsync(async (req, res, next) => {
   const users = await UserModel.find({});
@@ -50,6 +98,11 @@ exports.updateMe = catchAsync(async (req, res, next) => {
 
   // 1) get User and update it's info
   const { user } = req;
+
+  // 2) check if there are photos sent by the user
+  if (req.file) {
+    req.body.photo = req.file.filename;
+  }
 
   await user.updateUser(req.body);
 
