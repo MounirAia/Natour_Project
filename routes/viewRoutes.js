@@ -7,6 +7,9 @@ const {
   getTour,
   login,
   me,
+  signup,
+  forgotPassword,
+  resetPassword,
 } = require('../controllers/viewController');
 const {
   verifyIfLoggedIn,
@@ -18,6 +21,9 @@ router.get('/me', protectRoute, me);
 router.use(verifyIfLoggedIn);
 
 router.get('/', getOverview);
+router.get('/signup', signup);
+router.get('/forgotPassword', forgotPassword);
+router.get('/resetPassword', resetPassword);
 router.get('/login', login);
 router.get('/tour/:tourSlug', getTour);
 

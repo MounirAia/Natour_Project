@@ -2,24 +2,22 @@
 import axios from 'axios';
 import { showAlert } from './alert';
 
-const form = document.querySelector('#loginForm');
+const form = document.querySelector('#signupForm');
 
 if (form) {
   form.addEventListener('submit', (event) => {
     event.preventDefault();
-    const { email, password } = event.target;
+    const fd = new FormData(event.target);
+    const requestBody = Object.fromEntries(fd);
     axios
-      .post('/api/v1/users/login', {
-        email: email.value,
-        password: password.value,
-      })
+      .post('/api/v1/users/signup', requestBody)
       .then(function (response) {
         const { data } = response;
         const { token } = data;
         if (token) {
-          showAlert({ message: 'Successfully logged in!', type: 'success' });
+          showAlert({ message: 'Successfully signed in!', type: 'success' });
           setTimeout(() => {
-            location.assign('/');
+            location.assign('/me');
           }, 1500);
         }
       })

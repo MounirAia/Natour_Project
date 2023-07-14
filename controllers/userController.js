@@ -3,7 +3,7 @@ const sharp = require('sharp');
 const catchAsync = require('../utils/catchAsync');
 const UserModel = require('../models/userModel');
 const AppError = require('../utils/appError');
-const sendMail = require('../utils/mail');
+const Email = require('../utils/mail');
 
 // const storage = multer.diskStorage({
 //   destination: function (req, file, cb) {
@@ -135,14 +135,16 @@ exports.forgotPassword = catchAsync(async (req, res, next) => {
 
   await user.save({ validateBeforeSave: false });
 
-  const redirectUrl = `${req.protocol}://${req.get('host')}${
-    req.baseUrl
-  }/resetPassword`;
-  const text = `<p>Click on this link to reset your password:<a href="${redirectUrl}?token=${plainToken}&email=${email}">Reset Password</a></p>`;
-
   // 3) Send code to user's email
   try {
-    await sendMail({ to: 'aa@te.com', subject: 'Token', html: text });
+    const url = `${req.protocol}://${req.get(
+      'host'
+    )}/resetPassword?token=${plainToken}&email=${email}`;
+    await new Email().sendForgotPassword({
+      name: user.name,
+      url,
+      to: user.email,
+    });
 
     res.status(201).json({
       status: 'success',
@@ -163,8 +165,8 @@ exports.forgotPassword = catchAsync(async (req, res, next) => {
 });
 
 exports.resetPassword = catchAsync(async (req, res, next) => {
-  // 1) retrieve data from query parameters
-  const { token, email } = req.query;
+  // 1) retrieve data from request body
+  const { token, email } = req.body;
 
   // 2) Verify if the reset password token of the user is valid
   const user = await UserModel.findOne({ email });

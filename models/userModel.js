@@ -52,8 +52,7 @@ const userSchema = mongoose.Schema({
         validator: function (value) {
           return this.get('password') === value;
         },
-        message:
-          'The confirm password: {VALUE} should match the value of the password.',
+        message: 'The confirm password must match the value of the password.',
       },
     ],
   },

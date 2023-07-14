@@ -1,23 +1,70 @@
+const path = require('path');
 const nodemailer = require('nodemailer');
+const pug = require('pug');
+const htmlToText = require('html-to-text');
 
-module.exports = async (params) => {
-  let transporterOption = {};
+module.exports = class Email {
+  send(parameters) {
+    // message = {
+    //   from: "sender@server.com",
+    //   to: "receiver@sender.com",
+    //   subject: "Message title",
+    //   text: "Plaintext version of the message",
+    //   html: "<p>HTML version of the message</p>"
+    // };
 
-  // in development mode I use maildev to catch the email we send
-  if (process.env.NODE_ENV === 'development') {
-    transporterOption = {
-      port: process.env.EMAIL_PORT,
+    const { template, subject, to, templateArguments } = parameters;
+    const templatePath = path.join(
+      __dirname,
+      '..',
+      'views',
+      'email',
+      `${template}.pug`
+    );
+    const html = pug.renderFile(templatePath, templateArguments);
+    const text = htmlToText.convert(html);
+    const emailOption = {
+      from: `${process.env.EMAIL_SENDER}`,
+      to,
+      subject: subject,
+      text,
+      html,
     };
+
+    const transporter = this.createNewTransport();
+    return transporter.sendMail(emailOption);
   }
 
-  // create reusable transporter object using the default SMTP transport
-  const transporter = nodemailer.createTransport(transporterOption);
-  // Params can be { to, subject, text, html }
-  const opt = {
-    from: `${process.env.EMAIL_SENDER}`, // sender address
-    ...params,
-  };
+  sendWelcome(parameters) {
+    const { name, url, to } = parameters;
+    return this.send({
+      template: 'welcome',
+      to,
+      subject: 'Welcome to the Natour Family',
+      templateArguments: {
+        name,
+        url,
+      },
+    });
+  }
 
-  // send mail with defined transport object
-  await transporter.sendMail(opt);
+  sendForgotPassword(parameters) {
+    const { name, url, to } = parameters;
+    return this.send({
+      template: 'forgotPassword',
+      to,
+      subject: 'Reset Your Natour Account Password',
+      templateArguments: {
+        name,
+        url,
+      },
+    });
+  }
+
+  createNewTransport() {
+    const transporterOption = {
+      port: process.env.EMAIL_PORT,
+    };
+    return nodemailer.createTransport(transporterOption);
+  }
 };

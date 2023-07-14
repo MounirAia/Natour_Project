@@ -21,9 +21,21 @@ exports.getTour = catchAsync(async (req, res, next) => {
   res.render('specificTour', { title: tour.name, tour });
 });
 
+exports.signup = (req, res) => {
+  res.render('signup', { title: 'Sign Up' });
+};
+
 exports.login = catchAsync(async (req, res) => {
   res.render('login', { title: 'Login' });
 });
+
+exports.forgotPassword = (req, res) => {
+  res.render('forgotPassword', { title: 'Forgot Password' });
+};
+
+exports.resetPassword = (req, res) => {
+  res.render('resetPassword', { title: 'Reset Password' });
+};
 
 exports.me = catchAsync(async (req, res) => {
   const { active = 1 } = req.query;
