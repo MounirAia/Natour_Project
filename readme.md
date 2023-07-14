@@ -1,4 +1,4 @@
-# Project Overview
+# Context of the Project
 
 This repository contains the code for the Natour project developed following the "Node.js, Express, MongoDB & More: The Complete Bootcamp 2023" course on Udemy. The course, available at [this link](https://www.udemy.com/course/nodejs-express-mongodb-bootcamp/), provides a comprehensive guide to building a full-stack web application using Node.js, Express, MongoDB, and other related technologies.
 
