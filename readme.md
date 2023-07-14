@@ -40,7 +40,7 @@ To run the Natour project locally, follow these steps:
 1.  Clone the repository: `git clone <repository-url>`
 2.  Install dependencies: `npm install`
 3.  Set up the required environment variables (e.g., database connection URL, etc.).
-4.  Start the application: `npm start:dev`
+4.  Start the application: `npm run start:dev`
 
 Please refer to the project's README or documentation for more detailed instructions on setup, configuration, and usage.
 
