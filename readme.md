@@ -42,11 +42,11 @@ To run the Natour project locally, follow these steps:
 3.  Set up the required environment variables (e.g., database connection URL, etc.).
 4.  Start the application: `npm run start:dev`
 
-Please refer to the project's README or documentation for more detailed instructions on setup, configuration, and usage.
+Please refer to the project's package.json for more commands.
 
 ## Credits
 
-This project was developed as part of the "Node.js, Express, MongoDB & More: The Complete Bootcamp 2021" course on Udemy. Special thanks to the course instructor, Jonas Schmedtmann, for providing an in-depth and comprehensive learning experience.
+This project was developed as part of the "Node.js, Express, MongoDB & More: The Complete Bootcamp 2023" course on Udemy. Special thanks to the course instructor, Jonas Schmedtmann, for providing an in-depth and comprehensive learning experience.
 
 ## Contact
 
